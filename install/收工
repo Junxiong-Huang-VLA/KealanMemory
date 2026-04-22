@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+python D:/KealanMemory/boot/hooks/manual_save.py

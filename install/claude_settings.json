@@ -1,0 +1,33 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://key.simpleai.com.cn",
+    "ANTHROPIC_AUTH_TOKEN": "sk-WGoNuwqRDLy3LjeF4kqiHkBBrh8Jl2pKBkBepkCMIrbAXIaC",
+    "ANTHROPIC_MODEL": "claude-3-7-sonnet-20250219",
+    "ANTHROPIC_SMALL_FAST_MODEL": "claude-3-7-haiku-20241022"
+  },
+  "model": "us.anthropic.claude-opus-4-6-v1[1m]",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python D:/ClaudeMemory/boot/hooks/session_start.py"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python D:/ClaudeMemory/boot/hooks/session_end.py"
+          }
+        ]
+      }
+    ]
+  }
+}
