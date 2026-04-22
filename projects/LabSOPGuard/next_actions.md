@@ -1,10 +1,10 @@
 # LabSOPGuard — 下一步行动
 
-## 立即要做（更新于 2026-04-22 晚）
+## 立即要做（更新于 2026-04-22）
 
-1. 从 Roboflow 导出 tube/tube-cap/spearhead/pipette 四类标注
-2. 验证关键素材标注新效果（重启后端后 publish）
-3. ptz_tracker 接实物测试，调 PID 参数
+1. AutoDL 重训 YOLO（13 类全有标注，目标 mAP50 >= 0.95）
+2. 重启后端验证关键素材标注效果（publish 后查看）
+3. D:/cvdemo 确认无遗漏后归档到 KealanMemory/archive/
 
 ## 本周要做
 

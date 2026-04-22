@@ -22,10 +22,11 @@
 - VLA 方向：暂缓，等 LabSOPGuard 达到 A 级后启动
 - 论文：暂缓，等系统稳定后整理实验结果
 
-## 上次工作摘要（2026-04-22 晚）
+## 上次工作摘要（2026-04-22）
 
-**项目**：LabSOPGuard
+**项目**：LabSOPGuard + KealanMemory
 
-- 前端崩溃修复（evidence_refs 空值保护 + ErrorBoundary）
-- 关键素材标注重构（实时YOLO逐帧 + PIL渲染 + 交互触发检测框）
-- clip生成优化（ffmpeg先裁片段再标注）
+- cvdemo 数据合并完成（639张，13 类全部有标注）
+- 8 个工具脚本迁入 LabSOPGuard/tools/
+- 新电脑安装包 + GitHub 自动同步
+- 下一步：AutoDL 重训 YOLO

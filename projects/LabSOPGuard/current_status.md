@@ -20,13 +20,17 @@
 - KealanMemory Web 界面（http://localhost:7777）
 - 20个通用 Skills + 14个角色文档
 - 开工/收工全局协议
+- 从 D:/cvdemo 合并标注数据（639张，补全 tube/tube-cap/spearhead/pipette/beaker 五类）
+- 迁入 RealSense 采集+自动标注+可视化等 8 个工具脚本
+- 新电脑一键安装包（install/setup.py）
+- 记忆系统 Git 同步（GitHub 私有仓库，收工自动 push）
 
 ## 待完成（按优先级）
 
 | 优先级 | 任务 | 备注 |
 |--------|------|------|
 | P0 | 重启后端验证关键素材标注效果 | 代码已就绪，publish 后查看 |
-| P0 | 补充 tube/tube-cap/spearhead/pipette 标注 | 数据在 Roboflow，未同步本地 |
+| P0 | AutoDL 重训 YOLO（13 类全有标注） | cvdemo 数据已合并，需要重训 |
 | P0 | step_bridge 置信度提升（目标 >= 0.5，当前 ~0.18） | 需要真实视频 |
 | P1 | goggles 检测类 | 当前依赖 Qwen 语义 |
 | P1 | lab_coat mAP50 0.940 -> >= 0.96 | 补充困难样本 |
@@ -40,10 +44,9 @@ mAP50=0.977 / mAP50-95=0.925（测试集）
 
 ## 最近一次更新
 
-- **时间**：2026-04-22 晚
+- **时间**：2026-04-22
 - **做了什么**：
-  - 前端崩溃修复（evidence_refs 空值保护 + ErrorBoundary）
-  - 关键素材标注重构（track缓存bbox → 实时YOLO逐帧检测 + PIL高质量渲染）
-  - 事件类别过滤（clip/keyframe 只显示事件相关类别）
-  - 交互触发检测框（手碰到物体才亮框，手离开框消失）
-  - clip生成优化（先ffmpeg裁短片段再逐帧标注，避免在大视频上跑推理）
+  - 从 D:/cvdemo 合并 639 张标注图片，补全 tube/tube-cap/spearhead/pipette/beaker 五类
+  - 迁入 8 个工具脚本（RealSense 采集/实时检测/自动标注/数据合并等）
+  - 建立新电脑一键安装包（install/setup.py + setup.bat）
+  - 记忆系统接入 GitHub 私有仓库，收工自动 push
