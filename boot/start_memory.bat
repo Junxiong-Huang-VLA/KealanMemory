@@ -1,41 +1,46 @@
 @echo off
+setlocal
 chcp 65001 >nul
-REM start_memory.bat — 快速记忆加载入口
-REM 用法：双击运行，或命令行传参：
-REM   start_memory.bat                    仅核心记忆
-REM   start_memory.bat LabSOPGuard        核心 + 项目记忆
-REM   start_memory.bat LabSOPGuard full   核心 + 项目 + 完整规范
+REM Quick entrypoint for the local memory loader.
+REM Usage:
+REM   start_memory.bat
+REM   start_memory.bat LabSOPGuard
+REM   start_memory.bat LabSOPGuard full
 
-set ROOT=D:\KealanMemory
-set PYTHON=python
+if defined KEALAN_MEMORY_ROOT (
+    for %%I in ("%KEALAN_MEMORY_ROOT%") do set "ROOT=%%~fI"
+) else (
+    for %%I in ("%~dp0..") do set "ROOT=%%~fI"
+)
 
-REM 检查 Python 是否可用
+set "PYTHON=python"
+set "LOADER=%ROOT%\boot\load_memory.py"
+set "OUTPUT=%ROOT%\boot\assembled_context.txt"
+
 %PYTHON% --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo [错误] 找不到 python 命令，请确认 conda 环境已激活
+if errorlevel 1 (
+    echo [error] python command was not found. Activate the expected environment and retry.
     pause
     exit /b 1
 )
 
-REM 根据参数决定加载模式
-if "%1"=="" (
-    echo 加载模式：核心记忆
-    %PYTHON% "%ROOT%\boot\load_memory.py"
-) else if "%2"=="full" (
-    echo 加载模式：核心 + 项目 [%1] + 完整规范
-    %PYTHON% "%ROOT%\boot\load_memory.py" --project %1 --full
+if "%~1"=="" (
+    echo Load mode: core memory
+    %PYTHON% "%LOADER%"
+) else if /I "%~2"=="full" (
+    echo Load mode: core + project [%~1] + optional memory
+    %PYTHON% "%LOADER%" --project "%~1" --full
 ) else (
-    echo 加载模式：核心 + 项目 [%1]
-    %PYTHON% "%ROOT%\boot\load_memory.py" --project %1
+    echo Load mode: core + project [%~1]
+    %PYTHON% "%LOADER%" --project "%~1"
 )
 
-if %errorlevel% equ 0 (
-    echo.
-    echo 已生成：%ROOT%\boot\assembled_context.txt
-    echo 请用文本编辑器打开，复制内容粘贴给 Claude。
-    REM 自动用记事本打开
-    notepad "%ROOT%\boot\assembled_context.txt"
-) else (
-    echo [错误] 生成失败，请检查 Python 脚本输出
+if errorlevel 1 (
+    echo [error] Generation failed. Check the Python script output above.
     pause
+    exit /b 1
 )
+
+echo.
+echo Generated: %OUTPUT%
+if /I not "%KEALAN_MEMORY_NO_NOTEPAD%"=="1" notepad "%OUTPUT%"

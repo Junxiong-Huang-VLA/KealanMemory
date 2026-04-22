@@ -12,18 +12,44 @@ import os
 import sys
 from pathlib import Path
 
-MEMORY_ROOT = Path("D:/KealanMemory")
-MAP_FILE = MEMORY_ROOT / "boot/memory_map.json"
 
-# 核心记忆文件（每次必加载，保持轻量）
-CORE_FILES = [
-    "profile/identity.md",
-    "profile/work_style.md",
-    "profile/preferences.md",
-    "operating_rules/communication_rules.md",
-    "context/active_focus.md",
-    "context/global_constraints.md",
-]
+def find_memory_root() -> Path:
+    env_root = os.environ.get("KEALAN_MEMORY_ROOT")
+    if env_root:
+        return Path(env_root).expanduser().resolve()
+    return Path(__file__).resolve().parents[2]
+
+
+MEMORY_ROOT = find_memory_root()
+MAP_FILE = MEMORY_ROOT / "boot/memory_map.json"
+sys.path.insert(0, str(MEMORY_ROOT / "boot"))
+
+try:
+    from hook_logging import log_event, log_exception
+except Exception:
+    def log_event(*args, **kwargs):
+        return None
+
+    def log_exception(*args, **kwargs):
+        return None
+
+
+def load_map() -> dict:
+    try:
+        return json.loads(MAP_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def parse_hook_input() -> dict:
+    if hasattr(sys.stdin, "buffer"):
+        raw = sys.stdin.buffer.read().decode("utf-8-sig", errors="replace")
+    else:
+        raw = sys.stdin.read()
+    starts = [idx for idx in (raw.find("{"), raw.find("[")) if idx >= 0]
+    if starts:
+        raw = raw[min(starts):]
+    return json.loads(raw)
 
 
 def detect_project(cwd: str) -> str:
@@ -31,11 +57,7 @@ def detect_project(cwd: str) -> str:
     if not cwd:
         return ""
     cwd_lower = cwd.lower().replace("\\", "/")
-    try:
-        mem_map = json.loads(MAP_FILE.read_text(encoding="utf-8"))
-        projects = mem_map.get("projects", [])
-    except Exception:
-        return ""
+    projects = load_map().get("projects", [])
     for p in projects:
         if p == "_template":
             continue
@@ -54,10 +76,11 @@ def read_file(rel_path: str) -> str:
 
 
 def build_context(project: str = "") -> str:
+    mem_map = load_map()
     lines = ["# [记忆系统自动加载]", ""]
 
     # 核心记忆
-    for rel in CORE_FILES:
+    for rel in mem_map.get("default_load", []):
         content = read_file(rel)
         if content:
             lines.append(f"## {rel}")
@@ -67,11 +90,11 @@ def build_context(project: str = "") -> str:
     # 项目记忆（若匹配到）
     if project:
         lines.append(f"## 当前项目：{project}")
-        for fname in ["project_brief.md", "current_status.md", "constraints.md", "next_actions.md"]:
-            rel = f"projects/{project}/{fname}"
+        for rel_template in mem_map.get("project_load", []):
+            rel = rel_template.replace("{project}", project)
             content = read_file(rel)
             if content:
-                lines.append(f"### {fname}")
+                lines.append(f"### {Path(rel).name}")
                 lines.append(content)
                 lines.append("")
         lines.append("---")
@@ -83,23 +106,53 @@ def build_context(project: str = "") -> str:
     return "\n".join(lines)
 
 
+def load_summary(project: str = "") -> dict:
+    mem_map = load_map()
+    default_files = [rel for rel in mem_map.get("default_load", []) if (MEMORY_ROOT / rel).exists()]
+    project_files = []
+    if project:
+        for rel_template in mem_map.get("project_load", []):
+            rel = rel_template.replace("{project}", project)
+            if (MEMORY_ROOT / rel).exists():
+                project_files.append(rel)
+    return {
+        "default_file_count": len(default_files),
+        "project_file_count": len(project_files),
+        "default_files": [Path(rel).name for rel in default_files],
+        "project_files": [Path(rel).name for rel in project_files],
+    }
+
+
 def main():
-    # 读取 hook 输入
     try:
-        hook_input = json.loads(sys.stdin.read())
-    except Exception:
-        hook_input = {}
+        # 读取 hook 输入
+        try:
+            hook_input = parse_hook_input()
+        except Exception as exc:
+            log_exception("session_start", "parse_input", exc)
+            hook_input = {}
 
-    cwd = hook_input.get("cwd", os.getcwd())
-    source = hook_input.get("source", "startup")
+        cwd = hook_input.get("cwd", os.getcwd())
+        source = hook_input.get("source", "startup")
 
-    # resume 时不重复注入（已有上下文）
-    if source == "resume":
-        sys.exit(0)
+        # resume 时不重复注入（已有上下文）
+        if source == "resume":
+            log_event("session_start", "skip", source=source)
+            sys.exit(0)
 
-    project = detect_project(cwd)
-    context = build_context(project)
-    print(context)
+        project = detect_project(cwd)
+        log_event("session_start", "project_detected", project=project or None, cwd=cwd)
+        context = build_context(project)
+        log_event(
+            "session_start",
+            "load_summary",
+            project=project or None,
+            output_chars=len(context),
+            **load_summary(project),
+        )
+        print(context)
+    except Exception as exc:
+        log_exception("session_start", "hook_failed", exc)
     sys.exit(0)
 
 

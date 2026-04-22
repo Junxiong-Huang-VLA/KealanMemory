@@ -1,0 +1,1169 @@
+{
+  "version": 1,
+  "generated_by": "boot/write_skills.py",
+  "policy": {
+    "selection_order": [
+      "intent triggers",
+      "role triggers",
+      "skill triggers",
+      "default files"
+    ],
+    "fallback_role": "debug-expert",
+    "fallback_skills": [
+      "api-debug",
+      "fe-debug",
+      "event-debug",
+      "stack-start"
+    ]
+  },
+  "intents": [
+    {
+      "intent": "yolo-trainer",
+      "description": "分析 YOLO 训练、验证、推理和困难样本闭环，管理权重切换与模型质量。",
+      "triggers": [
+        "训练",
+        "YOLO",
+        "权重",
+        "mAP",
+        "过拟合",
+        "欠拟合",
+        "推理",
+        "验证"
+      ],
+      "role": "yolo-trainer",
+      "skills": [
+        "train",
+        "val",
+        "infer",
+        "hardcase",
+        "autodl"
+      ],
+      "default_files": [
+        "configs/model/detection_runtime.yaml",
+        "data/dataset/dataset.yaml",
+        "outputs/training/",
+        "outputs/val/"
+      ]
+    },
+    {
+      "intent": "video-event-engineer",
+      "description": "维护视频到事件、clip、材料索引的链路，定位事件漏检、误检和发布断点。",
+      "triggers": [
+        "事件",
+        "clip",
+        "materials",
+        "视频处理",
+        "physical_events",
+        "material_stream"
+      ],
+      "role": "video-event-engineer",
+      "skills": [
+        "event-debug",
+        "pipeline-run",
+        "clip-check"
+      ],
+      "default_files": [
+        "src/labsopguard/event_preprocessing/",
+        "outputs/experiments/<id>/physical_events.json",
+        "outputs/experiments/<id>/materials/"
+      ]
+    },
+    {
+      "intent": "step-bridge-engineer",
+      "description": "维护 StepBridgeEngine、SOP 图和步骤匹配输出，解释合规判断低置信度原因。",
+      "triggers": [
+        "步骤",
+        "SOP",
+        "StepBridge",
+        "合规",
+        "needs_review",
+        "protocol_graph"
+      ],
+      "role": "step-bridge-engineer",
+      "skills": [
+        "event-debug",
+        "pipeline-run",
+        "clip-check"
+      ],
+      "default_files": [
+        "src/labsopguard/step_bridge/",
+        "outputs/experiments/<id>/steps_bridge_result.json"
+      ]
+    },
+    {
+      "intent": "fastapi-backend-engineer",
+      "description": "设计 FastAPI 路由、Pydantic Schema、异步任务和后端错误定位。",
+      "triggers": [
+        "API",
+        "FastAPI",
+        "路由",
+        "Schema",
+        "422",
+        "500",
+        "任务队列",
+        "diagnostics"
+      ],
+      "role": "fastapi-backend-engineer",
+      "skills": [
+        "api-new",
+        "api-debug",
+        "stack-start",
+        "pipeline-run"
+      ],
+      "default_files": [
+        "backend/main.py",
+        "src/labsopguard/workflow.py",
+        "src/labsopguard/tasking.py",
+        "backend_start.err.log"
+      ]
+    },
+    {
+      "intent": "vue-frontend-engineer",
+      "description": "维护 Vue 组件、视频播放、API 对接、空值保护和前端调试。",
+      "triggers": [
+        "Vue",
+        "前端",
+        "白屏",
+        "组件",
+        "视频播放",
+        "CORS",
+        "resolveArtifactUrl"
+      ],
+      "role": "vue-frontend-engineer",
+      "skills": [
+        "fe-component",
+        "fe-debug",
+        "stack-start"
+      ],
+      "default_files": [
+        "frontend-app/src/views/",
+        "frontend-app/src/components/",
+        "frontend-app/src/api/"
+      ]
+    },
+    {
+      "intent": "qwen-vlm-engineer",
+      "description": "维护 DashScope/Qwen 文本与多模态调用、prompt 模板、错误处理和降级逻辑。",
+      "triggers": [
+        "Qwen",
+        "DashScope",
+        "VLM",
+        "多模态",
+        "prompt",
+        "DASHSCOPE_API_KEY"
+      ],
+      "role": "qwen-vlm-engineer",
+      "skills": [
+        "qwen-call",
+        "api-debug"
+      ],
+      "default_files": [
+        ".env",
+        "src/labsopguard/reasoning.py",
+        "src/labsopguard/video_analysis.py",
+        "tools/check_qwen_integration.py"
+      ]
+    },
+    {
+      "intent": "dataset-engineer",
+      "description": "管理 Roboflow/YOLO 数据集、类别分布、标注质量、划分和困难样本回流。",
+      "triggers": [
+        "数据集",
+        "Roboflow",
+        "标注",
+        "类别分布",
+        "YOLO txt",
+        "hardcase"
+      ],
+      "role": "dataset-engineer",
+      "skills": [
+        "dataset",
+        "hardcase",
+        "train",
+        "val"
+      ],
+      "default_files": [
+        "data/dataset/",
+        "data/dataset/dataset.yaml",
+        "outputs/hardcases/"
+      ]
+    },
+    {
+      "intent": "autodl-devops",
+      "description": "管理 AutoDL 训练环境、数据同步、显存问题、产物下载和全栈启动。",
+      "triggers": [
+        "AutoDL",
+        "CUDA",
+        "显存",
+        "scp",
+        "环境",
+        "启动",
+        "训练服务器"
+      ],
+      "role": "autodl-devops",
+      "skills": [
+        "autodl",
+        "env-new",
+        "train",
+        "stack-start"
+      ],
+      "default_files": [
+        "scripts/start_full_stack.ps1",
+        "outputs/training/",
+        "requirements.txt",
+        ".env"
+      ]
+    },
+    {
+      "intent": "debug-expert",
+      "description": "跨检测、事件、API、前端和环境层做最小复现、根因定位和最小修复。",
+      "triggers": [
+        "报错",
+        "debug",
+        "traceback",
+        "失败",
+        "异常",
+        "不可用",
+        "复现"
+      ],
+      "role": "debug-expert",
+      "skills": [
+        "api-debug",
+        "fe-debug",
+        "event-debug",
+        "clip-check",
+        "stack-start"
+      ],
+      "default_files": [
+        "backend_start.err.log",
+        "frontend-app/",
+        "outputs/experiments/",
+        "configs/model/detection_runtime.yaml"
+      ]
+    },
+    {
+      "intent": "experiment-recorder",
+      "description": "结构化记录训练、验证、对比实验、周报和可复现结论。",
+      "triggers": [
+        "实验记录",
+        "周报",
+        "训练报告",
+        "复现",
+        "对比",
+        "结果整理"
+      ],
+      "role": "experiment-recorder",
+      "skills": [
+        "weekly",
+        "train",
+        "val",
+        "paper-exp"
+      ],
+      "default_files": [
+        "docs/training_report.md",
+        "context/history/",
+        "outputs/training/",
+        "outputs/val/"
+      ]
+    },
+    {
+      "intent": "paper-engineer",
+      "description": "把系统架构和实验结果转成论文方法、实验、图表和学术表达。",
+      "triggers": [
+        "论文",
+        "方法章节",
+        "实验章节",
+        "LaTeX",
+        "消融",
+        "baseline"
+      ],
+      "role": "paper-engineer",
+      "skills": [
+        "paper-method",
+        "paper-exp",
+        "weekly"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "docs/training_report.md",
+        "outputs/val/"
+      ]
+    },
+    {
+      "intent": "vla-researcher",
+      "description": "研究 LabSOPGuard 感知层到 VLA policy、闭环控制和 observation-action 数据构建。",
+      "triggers": [
+        "VLA",
+        "具身智能",
+        "闭环控制",
+        "policy",
+        "observation-action",
+        "OpenVLA"
+      ],
+      "role": "vla-researcher",
+      "skills": [
+        "paper-method",
+        "dataset",
+        "event-debug"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "src/labsopguard/event_preprocessing/",
+        "data/dataset/"
+      ]
+    },
+    {
+      "intent": "system-architect",
+      "description": "设计新模块、接口契约、目录结构和依赖边界，避免循环依赖。",
+      "triggers": [
+        "架构",
+        "新模块",
+        "接口",
+        "目录结构",
+        "依赖",
+        "重构",
+        "新项目"
+      ],
+      "role": "system-architect",
+      "skills": [
+        "api-new",
+        "env-new",
+        "stack-start",
+        "pipeline-run",
+        "paper-method"
+      ],
+      "default_files": [
+        "README.md",
+        "src/labsopguard/",
+        "backend/main.py",
+        "frontend-app/src/"
+      ]
+    },
+    {
+      "intent": "ppt-coach",
+      "description": "拆解汇报逻辑、页面结构、核心卖点、演讲提示和评委问题。",
+      "triggers": [
+        "PPT",
+        "答辩",
+        "汇报",
+        "开题",
+        "毕业设计",
+        "演讲",
+        "评委问题"
+      ],
+      "role": "ppt-coach",
+      "skills": [
+        "ppt-outline",
+        "weekly",
+        "paper-exp"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "docs/training_report.md",
+        "context/active_focus.md"
+      ]
+    }
+  ],
+  "roles": {
+    "yolo-trainer": {
+      "id": "01",
+      "name": "YOLO 训练专家",
+      "category": "detection",
+      "description": "分析 YOLO 训练、验证、推理和困难样本闭环，管理权重切换与模型质量。",
+      "triggers": [
+        "训练",
+        "YOLO",
+        "权重",
+        "mAP",
+        "过拟合",
+        "欠拟合",
+        "推理",
+        "验证"
+      ],
+      "skills": [
+        "train",
+        "val",
+        "infer",
+        "hardcase",
+        "autodl"
+      ],
+      "default_files": [
+        "configs/model/detection_runtime.yaml",
+        "data/dataset/dataset.yaml",
+        "outputs/training/",
+        "outputs/val/"
+      ]
+    },
+    "video-event-engineer": {
+      "id": "02",
+      "name": "视频事件检测工程师",
+      "category": "pipeline",
+      "description": "维护视频到事件、clip、材料索引的链路，定位事件漏检、误检和发布断点。",
+      "triggers": [
+        "事件",
+        "clip",
+        "materials",
+        "视频处理",
+        "physical_events",
+        "material_stream"
+      ],
+      "skills": [
+        "event-debug",
+        "pipeline-run",
+        "clip-check"
+      ],
+      "default_files": [
+        "src/labsopguard/event_preprocessing/",
+        "outputs/experiments/<id>/physical_events.json",
+        "outputs/experiments/<id>/materials/"
+      ]
+    },
+    "step-bridge-engineer": {
+      "id": "03",
+      "name": "步骤推理工程师",
+      "category": "pipeline",
+      "description": "维护 StepBridgeEngine、SOP 图和步骤匹配输出，解释合规判断低置信度原因。",
+      "triggers": [
+        "步骤",
+        "SOP",
+        "StepBridge",
+        "合规",
+        "needs_review",
+        "protocol_graph"
+      ],
+      "skills": [
+        "event-debug",
+        "pipeline-run",
+        "clip-check"
+      ],
+      "default_files": [
+        "src/labsopguard/step_bridge/",
+        "outputs/experiments/<id>/steps_bridge_result.json"
+      ]
+    },
+    "fastapi-backend-engineer": {
+      "id": "04",
+      "name": "FastAPI 后端工程师",
+      "category": "backend",
+      "description": "设计 FastAPI 路由、Pydantic Schema、异步任务和后端错误定位。",
+      "triggers": [
+        "API",
+        "FastAPI",
+        "路由",
+        "Schema",
+        "422",
+        "500",
+        "任务队列",
+        "diagnostics"
+      ],
+      "skills": [
+        "api-new",
+        "api-debug",
+        "stack-start",
+        "pipeline-run"
+      ],
+      "default_files": [
+        "backend/main.py",
+        "src/labsopguard/workflow.py",
+        "src/labsopguard/tasking.py",
+        "backend_start.err.log"
+      ]
+    },
+    "vue-frontend-engineer": {
+      "id": "05",
+      "name": "Vue 前端工程师",
+      "category": "frontend",
+      "description": "维护 Vue 组件、视频播放、API 对接、空值保护和前端调试。",
+      "triggers": [
+        "Vue",
+        "前端",
+        "白屏",
+        "组件",
+        "视频播放",
+        "CORS",
+        "resolveArtifactUrl"
+      ],
+      "skills": [
+        "fe-component",
+        "fe-debug",
+        "stack-start"
+      ],
+      "default_files": [
+        "frontend-app/src/views/",
+        "frontend-app/src/components/",
+        "frontend-app/src/api/"
+      ]
+    },
+    "qwen-vlm-engineer": {
+      "id": "06",
+      "name": "Qwen VLM 工程师",
+      "category": "backend",
+      "description": "维护 DashScope/Qwen 文本与多模态调用、prompt 模板、错误处理和降级逻辑。",
+      "triggers": [
+        "Qwen",
+        "DashScope",
+        "VLM",
+        "多模态",
+        "prompt",
+        "DASHSCOPE_API_KEY"
+      ],
+      "skills": [
+        "qwen-call",
+        "api-debug"
+      ],
+      "default_files": [
+        ".env",
+        "src/labsopguard/reasoning.py",
+        "src/labsopguard/video_analysis.py",
+        "tools/check_qwen_integration.py"
+      ]
+    },
+    "dataset-engineer": {
+      "id": "07",
+      "name": "数据集工程师",
+      "category": "detection",
+      "description": "管理 Roboflow/YOLO 数据集、类别分布、标注质量、划分和困难样本回流。",
+      "triggers": [
+        "数据集",
+        "Roboflow",
+        "标注",
+        "类别分布",
+        "YOLO txt",
+        "hardcase"
+      ],
+      "skills": [
+        "dataset",
+        "hardcase",
+        "train",
+        "val"
+      ],
+      "default_files": [
+        "data/dataset/",
+        "data/dataset/dataset.yaml",
+        "outputs/hardcases/"
+      ]
+    },
+    "autodl-devops": {
+      "id": "08",
+      "name": "AutoDL 运维工程师",
+      "category": "devops",
+      "description": "管理 AutoDL 训练环境、数据同步、显存问题、产物下载和全栈启动。",
+      "triggers": [
+        "AutoDL",
+        "CUDA",
+        "显存",
+        "scp",
+        "环境",
+        "启动",
+        "训练服务器"
+      ],
+      "skills": [
+        "autodl",
+        "env-new",
+        "train",
+        "stack-start"
+      ],
+      "default_files": [
+        "scripts/start_full_stack.ps1",
+        "outputs/training/",
+        "requirements.txt",
+        ".env"
+      ]
+    },
+    "debug-expert": {
+      "id": "09",
+      "name": "调试专家",
+      "category": "general",
+      "description": "跨检测、事件、API、前端和环境层做最小复现、根因定位和最小修复。",
+      "triggers": [
+        "报错",
+        "debug",
+        "traceback",
+        "失败",
+        "异常",
+        "不可用",
+        "复现"
+      ],
+      "skills": [
+        "api-debug",
+        "fe-debug",
+        "event-debug",
+        "clip-check",
+        "stack-start"
+      ],
+      "default_files": [
+        "backend_start.err.log",
+        "frontend-app/",
+        "outputs/experiments/",
+        "configs/model/detection_runtime.yaml"
+      ]
+    },
+    "experiment-recorder": {
+      "id": "10",
+      "name": "实验记录员",
+      "category": "general",
+      "description": "结构化记录训练、验证、对比实验、周报和可复现结论。",
+      "triggers": [
+        "实验记录",
+        "周报",
+        "训练报告",
+        "复现",
+        "对比",
+        "结果整理"
+      ],
+      "skills": [
+        "weekly",
+        "train",
+        "val",
+        "paper-exp"
+      ],
+      "default_files": [
+        "docs/training_report.md",
+        "context/history/",
+        "outputs/training/",
+        "outputs/val/"
+      ]
+    },
+    "paper-engineer": {
+      "id": "11",
+      "name": "论文工程师",
+      "category": "research",
+      "description": "把系统架构和实验结果转成论文方法、实验、图表和学术表达。",
+      "triggers": [
+        "论文",
+        "方法章节",
+        "实验章节",
+        "LaTeX",
+        "消融",
+        "baseline"
+      ],
+      "skills": [
+        "paper-method",
+        "paper-exp",
+        "weekly"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "docs/training_report.md",
+        "outputs/val/"
+      ]
+    },
+    "vla-researcher": {
+      "id": "12",
+      "name": "VLA 研究员",
+      "category": "research",
+      "description": "研究 LabSOPGuard 感知层到 VLA policy、闭环控制和 observation-action 数据构建。",
+      "triggers": [
+        "VLA",
+        "具身智能",
+        "闭环控制",
+        "policy",
+        "observation-action",
+        "OpenVLA"
+      ],
+      "skills": [
+        "paper-method",
+        "dataset",
+        "event-debug"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "src/labsopguard/event_preprocessing/",
+        "data/dataset/"
+      ]
+    },
+    "system-architect": {
+      "id": "13",
+      "name": "系统架构师",
+      "category": "general",
+      "description": "设计新模块、接口契约、目录结构和依赖边界，避免循环依赖。",
+      "triggers": [
+        "架构",
+        "新模块",
+        "接口",
+        "目录结构",
+        "依赖",
+        "重构",
+        "新项目"
+      ],
+      "skills": [
+        "api-new",
+        "env-new",
+        "stack-start",
+        "pipeline-run",
+        "paper-method"
+      ],
+      "default_files": [
+        "README.md",
+        "src/labsopguard/",
+        "backend/main.py",
+        "frontend-app/src/"
+      ]
+    },
+    "ppt-coach": {
+      "id": "14",
+      "name": "PPT 答辩教练",
+      "category": "general",
+      "description": "拆解汇报逻辑、页面结构、核心卖点、演讲提示和评委问题。",
+      "triggers": [
+        "PPT",
+        "答辩",
+        "汇报",
+        "开题",
+        "毕业设计",
+        "演讲",
+        "评委问题"
+      ],
+      "skills": [
+        "ppt-outline",
+        "weekly",
+        "paper-exp"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "docs/training_report.md",
+        "context/active_focus.md"
+      ]
+    }
+  },
+  "skills": {
+    "infer": {
+      "name": "/infer",
+      "category": "检测与训练",
+      "description": "在图片或视频上运行 YOLO 推理，输出可视化检测结果、速度和类别统计。",
+      "triggers": [
+        "推理",
+        "预测",
+        "图片检测",
+        "视频检测",
+        "annotated video"
+      ],
+      "roles": [
+        "yolo-trainer"
+      ],
+      "default_files": [
+        "configs/model/detection_runtime.yaml",
+        "outputs/inference/"
+      ]
+    },
+    "train": {
+      "name": "/train",
+      "category": "检测与训练",
+      "description": "执行 YOLO 训练准备、命令生成、AutoDL 指引、产物检查和权重切换建议。",
+      "triggers": [
+        "训练",
+        "YOLO train",
+        "epoch",
+        "batch",
+        "学习率",
+        "新权重"
+      ],
+      "roles": [
+        "yolo-trainer",
+        "autodl-devops",
+        "dataset-engineer",
+        "experiment-recorder"
+      ],
+      "default_files": [
+        "configs/model/detection_runtime.yaml",
+        "data/dataset/dataset.yaml",
+        "outputs/training/"
+      ]
+    },
+    "val": {
+      "name": "/val",
+      "category": "检测与训练",
+      "description": "对当前或指定权重做测试集评估，产出 mAP/P/R、混淆矩阵和弱类分析。",
+      "triggers": [
+        "验证",
+        "评估",
+        "mAP",
+        "confusion_matrix",
+        "测试集",
+        "val"
+      ],
+      "roles": [
+        "yolo-trainer",
+        "dataset-engineer",
+        "experiment-recorder"
+      ],
+      "default_files": [
+        "configs/model/detection_runtime.yaml",
+        "data/dataset/dataset.yaml",
+        "outputs/val/"
+      ]
+    },
+    "dataset": {
+      "name": "/dataset",
+      "category": "检测与训练",
+      "description": "统计 YOLO 数据集类别分布、合并 Roboflow 导出、重划分并检查标注质量。",
+      "triggers": [
+        "数据集",
+        "Roboflow",
+        "类别统计",
+        "标注质量",
+        "划分",
+        "YOLO txt"
+      ],
+      "roles": [
+        "dataset-engineer",
+        "yolo-trainer",
+        "vla-researcher"
+      ],
+      "default_files": [
+        "data/dataset/",
+        "data/dataset/dataset.yaml"
+      ]
+    },
+    "hardcase": {
+      "name": "/hardcase",
+      "category": "检测与训练",
+      "description": "挖掘误检/漏检帧，导出困难样本包并推动 Roboflow 复标回流。",
+      "triggers": [
+        "困难样本",
+        "误检",
+        "漏检",
+        "hardcase",
+        "复标",
+        "弱类"
+      ],
+      "roles": [
+        "dataset-engineer",
+        "yolo-trainer"
+      ],
+      "default_files": [
+        "outputs/hardcases/",
+        "data/dataset/",
+        "outputs/training/"
+      ]
+    },
+    "event-debug": {
+      "name": "/event-debug",
+      "category": "事件与链路",
+      "description": "检查视频到事件、clip、步骤推理的全链路，定位断点并给出最小修复方案。",
+      "triggers": [
+        "事件调试",
+        "漏检",
+        "physical_events",
+        "steps_bridge_result",
+        "materials publish"
+      ],
+      "roles": [
+        "video-event-engineer",
+        "step-bridge-engineer",
+        "debug-expert",
+        "vla-researcher"
+      ],
+      "default_files": [
+        "outputs/experiments/<id>/",
+        "src/labsopguard/event_preprocessing/"
+      ]
+    },
+    "pipeline-run": {
+      "name": "/pipeline-run",
+      "category": "事件与链路",
+      "description": "检查后端健康状态，触发实验处理链路并验证关键输出文件完整性。",
+      "triggers": [
+        "跑链路",
+        "process experiment",
+        "diagnostics",
+        "pipeline",
+        "全流程"
+      ],
+      "roles": [
+        "video-event-engineer",
+        "fastapi-backend-engineer",
+        "system-architect",
+        "step-bridge-engineer"
+      ],
+      "default_files": [
+        "backend/main.py",
+        "outputs/experiments/<id>/"
+      ]
+    },
+    "clip-check": {
+      "name": "/clip-check",
+      "category": "事件与链路",
+      "description": "诊断 clip 或 materials 生成问题，检查目录结构、ffmpeg 可用性和材料索引。",
+      "triggers": [
+        "clip",
+        "materials",
+        "ffmpeg",
+        "素材",
+        "索引",
+        "视频片段"
+      ],
+      "roles": [
+        "video-event-engineer",
+        "step-bridge-engineer",
+        "debug-expert"
+      ],
+      "default_files": [
+        "outputs/experiments/<id>/materials/",
+        "tools/rebuild_material_indexes.py"
+      ]
+    },
+    "api-new": {
+      "name": "/api-new",
+      "category": "后端开发",
+      "description": "生成符合项目约束的 FastAPI 路由、Pydantic Schema 和异步任务接入方案。",
+      "triggers": [
+        "新接口",
+        "新增 API",
+        "FastAPI 路由",
+        "Pydantic",
+        "任务队列"
+      ],
+      "roles": [
+        "fastapi-backend-engineer",
+        "system-architect"
+      ],
+      "default_files": [
+        "backend/main.py",
+        "src/labsopguard/tasking.py",
+        "src/labsopguard/workflow.py"
+      ]
+    },
+    "api-debug": {
+      "name": "/api-debug",
+      "category": "后端开发",
+      "description": "定位接口报错，读取日志、复现请求、区分 422/500/CORS/业务链路错误。",
+      "triggers": [
+        "接口报错",
+        "422",
+        "500",
+        "CORS",
+        "backend_start.err.log",
+        "API debug"
+      ],
+      "roles": [
+        "fastapi-backend-engineer",
+        "qwen-vlm-engineer",
+        "debug-expert"
+      ],
+      "default_files": [
+        "backend_start.err.log",
+        "backend/main.py",
+        ".env"
+      ]
+    },
+    "qwen-call": {
+      "name": "/qwen-call",
+      "category": "后端开发",
+      "description": "生成 Qwen/DashScope 文本或多模态调用代码，包含 prompt、错误处理和 rule_based 降级。",
+      "triggers": [
+        "Qwen",
+        "DashScope",
+        "VLM",
+        "多模态调用",
+        "prompt",
+        "semantic enhancer"
+      ],
+      "roles": [
+        "qwen-vlm-engineer"
+      ],
+      "default_files": [
+        ".env",
+        "src/labsopguard/reasoning.py",
+        "src/labsopguard/video_analysis.py"
+      ]
+    },
+    "fe-component": {
+      "name": "/fe-component",
+      "category": "前端开发",
+      "description": "生成符合项目约束的 Vue 组件，覆盖 API 对接、URL 处理、空值保护和展示字段。",
+      "triggers": [
+        "Vue 组件",
+        "前端页面",
+        "组件开发",
+        "材料展示",
+        "视频播放器"
+      ],
+      "roles": [
+        "vue-frontend-engineer"
+      ],
+      "default_files": [
+        "frontend-app/src/views/",
+        "frontend-app/src/components/",
+        "frontend-app/src/api/"
+      ]
+    },
+    "fe-debug": {
+      "name": "/fe-debug",
+      "category": "前端开发",
+      "description": "调试前端白屏、渲染异常、URL、CORS 和空值访问问题。",
+      "triggers": [
+        "白屏",
+        "前端报错",
+        "undefined",
+        "CORS",
+        "视频不播放",
+        "Network"
+      ],
+      "roles": [
+        "vue-frontend-engineer",
+        "debug-expert"
+      ],
+      "default_files": [
+        "frontend-app/src/",
+        ".env"
+      ]
+    },
+    "env-new": {
+      "name": "/env-new",
+      "category": "环境与工程",
+      "description": "初始化新项目或新机器环境，覆盖 conda、依赖、CUDA、.env 模板和可用性验证。",
+      "triggers": [
+        "新环境",
+        "conda",
+        "requirements",
+        ".env",
+        "CUDA",
+        "新机器"
+      ],
+      "roles": [
+        "autodl-devops",
+        "system-architect"
+      ],
+      "default_files": [
+        "requirements.txt",
+        ".env",
+        "scripts/"
+      ]
+    },
+    "autodl": {
+      "name": "/autodl",
+      "category": "环境与工程",
+      "description": "执行 AutoDL 数据上传、远端训练、产物下载、权重同步和常见故障处理。",
+      "triggers": [
+        "AutoDL",
+        "远端训练",
+        "scp",
+        "5090",
+        "显存",
+        "训练产物"
+      ],
+      "roles": [
+        "autodl-devops",
+        "yolo-trainer"
+      ],
+      "default_files": [
+        "data/dataset/",
+        "outputs/training/",
+        "configs/model/detection_runtime.yaml"
+      ]
+    },
+    "stack-start": {
+      "name": "/stack-start",
+      "category": "环境与工程",
+      "description": "启动或检查 Redis、FastAPI、Vite 全栈服务，并执行健康检查和端口故障速查。",
+      "triggers": [
+        "启动全栈",
+        "FastAPI 启动",
+        "Vite",
+        "Redis",
+        "diagnostics",
+        "端口"
+      ],
+      "roles": [
+        "autodl-devops",
+        "fastapi-backend-engineer",
+        "vue-frontend-engineer",
+        "debug-expert",
+        "system-architect"
+      ],
+      "default_files": [
+        "scripts/start_full_stack.ps1",
+        "backend_start.err.log",
+        "frontend-app/"
+      ]
+    },
+    "paper-method": {
+      "name": "/paper-method",
+      "category": "科研与输出",
+      "description": "把系统架构翻译成论文方法章节，包括模块定义、输入输出、公式框架和图文说明。",
+      "triggers": [
+        "方法章节",
+        "论文方法",
+        "系统架构",
+        "公式",
+        "模块描述"
+      ],
+      "roles": [
+        "paper-engineer",
+        "vla-researcher",
+        "system-architect"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "src/labsopguard/",
+        "docs/"
+      ]
+    },
+    "paper-exp": {
+      "name": "/paper-exp",
+      "category": "科研与输出",
+      "description": "基于评测指标生成论文实验章节，覆盖数据集、对比、消融、结果表和定性分析。",
+      "triggers": [
+        "实验章节",
+        "消融",
+        "对比实验",
+        "LaTeX 表格",
+        "结果分析"
+      ],
+      "roles": [
+        "paper-engineer",
+        "experiment-recorder",
+        "ppt-coach"
+      ],
+      "default_files": [
+        "docs/training_report.md",
+        "outputs/val/",
+        "outputs/training/"
+      ]
+    },
+    "ppt-outline": {
+      "name": "/ppt-outline",
+      "category": "科研与输出",
+      "description": "生成答辩或汇报 PPT 大纲，包含页面标题、支撑点、演讲逻辑和评委问题。",
+      "triggers": [
+        "PPT",
+        "答辩大纲",
+        "汇报",
+        "开题",
+        "演讲稿",
+        "评委问题"
+      ],
+      "roles": [
+        "ppt-coach"
+      ],
+      "default_files": [
+        "project_brief.md",
+        "docs/training_report.md"
+      ]
+    },
+    "weekly": {
+      "name": "/weekly",
+      "category": "科研与输出",
+      "description": "读取记忆系统当前状态和历史，生成结构化周报、完成项、问题和下周计划。",
+      "triggers": [
+        "周报",
+        "本周完成",
+        "下周计划",
+        "进展总结",
+        "日报"
+      ],
+      "roles": [
+        "experiment-recorder",
+        "paper-engineer",
+        "ppt-coach"
+      ],
+      "default_files": [
+        "context/active_focus.md",
+        "context/current_status.md",
+        "context/next_actions.md",
+        "context/history/"
+      ]
+    }
+  }
+}

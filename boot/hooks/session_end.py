@@ -10,14 +10,50 @@ SessionEnd Hook — 对话结束时自动总结本次工作，写回记忆系统
 
 import json
 import os
-import sys
 import re
-from pathlib import Path
+import subprocess
+import sys
 from datetime import datetime
+from pathlib import Path
 
-MEMORY_ROOT = Path("D:/KealanMemory")
+
+def find_memory_root() -> Path:
+    env_root = os.environ.get("KEALAN_MEMORY_ROOT")
+    if env_root:
+        return Path(env_root).expanduser().resolve()
+    return Path(__file__).resolve().parents[2]
+
+
+MEMORY_ROOT = find_memory_root()
 CLAUDE_DIR = Path(os.path.expanduser("~/.claude"))
 MAP_FILE = MEMORY_ROOT / "boot/memory_map.json"
+sys.path.insert(0, str(MEMORY_ROOT / "boot"))
+
+try:
+    from hook_logging import log_event, log_exception
+except Exception:
+    def log_event(*args, **kwargs):
+        return None
+
+    def log_exception(*args, **kwargs):
+        return None
+
+SYNC_PATHS = ("context", "projects")
+SECRET_PATTERNS = (
+    re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
+    re.compile(r"(?:API_KEY|AUTH_TOKEN|SECRET)\s*[:=]\s*['\"]?[A-Za-z0-9_./+=-]{16,}", re.I),
+)
+
+
+def parse_hook_input() -> dict:
+    if hasattr(sys.stdin, "buffer"):
+        raw = sys.stdin.buffer.read().decode("utf-8-sig", errors="replace")
+    else:
+        raw = sys.stdin.read()
+    starts = [idx for idx in (raw.find("{"), raw.find("[")) if idx >= 0]
+    if starts:
+        raw = raw[min(starts):]
+    return json.loads(raw)
 
 # DashScope 配置（从 .env 读取，避免硬编码）
 def get_api_key() -> str:
@@ -141,15 +177,16 @@ def summarize_with_qwen(conversation: str, project: str) -> dict:
     return {}
 
 
-def update_memory(project: str, summary: dict, cwd: str):
+def update_memory(project: str, summary: dict, cwd: str) -> dict:
     """将摘要写入记忆文件"""
     today = datetime.now().strftime("%Y-%m-%d %H:%M")
     completed = summary.get("completed", [])
     findings = summary.get("findings", [])
     next_actions = summary.get("next_actions", [])
+    written_files: list[str] = []
 
     if not completed and not next_actions:
-        return  # 摘要为空，跳过
+        return {"status": "skipped", "reason": "empty_summary", "written_file_count": 0}
 
     # 写入 current_status.md
     if project:
@@ -169,6 +206,7 @@ def update_memory(project: str, summary: dict, cwd: str):
             else:
                 content = content.rstrip() + update_block
             status_file.write_text(content, encoding="utf-8")
+            written_files.append(str(status_file.relative_to(MEMORY_ROOT)))
 
     # 写入 next_actions.md
     if project and next_actions:
@@ -190,6 +228,7 @@ def update_memory(project: str, summary: dict, cwd: str):
             else:
                 content = action_block + "\n" + content
             actions_file.write_text(content, encoding="utf-8")
+            written_files.append(str(actions_file.relative_to(MEMORY_ROOT)))
 
     # 写入 active_focus.md 的"上次工作摘要"
     focus_file = MEMORY_ROOT / "context/active_focus.md"
@@ -206,43 +245,114 @@ def update_memory(project: str, summary: dict, cwd: str):
         else:
             content = content.rstrip() + "\n\n" + summary_block
         focus_file.write_text(content, encoding="utf-8")
+        written_files.append(str(focus_file.relative_to(MEMORY_ROOT)))
+
+    return {
+        "status": "written" if written_files else "skipped",
+        "written_file_count": len(written_files),
+        "written_files": written_files,
+    }
+
+
+def contains_secret(path: Path) -> bool:
+    try:
+        text = path.read_text(encoding="utf-8", errors="ignore")
+    except Exception:
+        return False
+    return any(pattern.search(text) for pattern in SECRET_PATTERNS)
+
+
+def sync_memory_changes() -> dict:
+    if os.environ.get("KEALAN_MEMORY_AUTO_COMMIT") != "1":
+        return {"status": "skipped", "reason": "auto_commit_disabled"}
+
+    checked_files: list[Path] = []
+    for rel in SYNC_PATHS:
+        base = MEMORY_ROOT / rel
+        if base.exists():
+            checked_files.extend(p for p in base.rglob("*") if p.is_file())
+
+    if any(contains_secret(path) for path in checked_files):
+        return {"status": "skipped", "reason": "secret_scan_blocked"}
+
+    date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    try:
+        subprocess.run(["git", "add", *SYNC_PATHS], cwd=MEMORY_ROOT, check=True, capture_output=True)
+        diff = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=MEMORY_ROOT)
+        if diff.returncode == 0:
+            return {"status": "skipped", "reason": "no_changes"}
+        subprocess.run(
+            ["git", "commit", "-m", f"sync memory: {date_str}"],
+            cwd=MEMORY_ROOT,
+            check=True,
+            capture_output=True,
+        )
+        pushed = False
+        if os.environ.get("KEALAN_MEMORY_AUTO_PUSH") == "1":
+            subprocess.run(["git", "push"], cwd=MEMORY_ROOT, check=True, capture_output=True)
+            pushed = True
+        return {"status": "committed", "pushed": pushed}
+    except subprocess.CalledProcessError:
+        return {"status": "failed", "reason": "git_command_failed"}
 
 
 def main():
     try:
-        hook_input = json.loads(sys.stdin.read())
-    except Exception:
-        hook_input = {}
+        try:
+            hook_input = parse_hook_input()
+        except Exception as exc:
+            log_exception("session_end", "parse_input", exc)
+            hook_input = {}
 
-    cwd = hook_input.get("cwd", os.getcwd())
-    session_id = hook_input.get("session_id", "")
-    exit_reason = hook_input.get("exit_reason", "")
+        cwd = hook_input.get("cwd", os.getcwd())
+        session_id = hook_input.get("session_id", "")
+        exit_reason = hook_input.get("exit_reason", "")
 
-    # clear/resume 不触发（用户主动清除或切换，不是真正结束）
-    if exit_reason in ("clear",):
-        sys.exit(0)
+        # clear/resume 不触发（用户主动清除或切换，不是真正结束）
+        if exit_reason in ("clear",):
+            log_event("session_end", "skip", exit_reason=exit_reason)
+            sys.exit(0)
 
-    project = detect_project(cwd)
+        project = detect_project(cwd)
+        log_event("session_end", "project_detected", project=project or None, cwd=cwd)
 
-    # 提取对话历史
-    if session_id:
-        conversation = extract_conversation(session_id, cwd)
-    else:
-        conversation = ""
+        # 提取对话历史
+        if session_id:
+            conversation = extract_conversation(session_id, cwd)
+        else:
+            conversation = ""
+        log_event(
+            "session_end",
+            "conversation_extracted",
+            project=project or None,
+            has_session_id=bool(session_id),
+            conversation_chars=len(conversation),
+        )
 
-    if not conversation:
-        sys.exit(0)
+        if not conversation:
+            log_event("session_end", "skip", reason="empty_conversation", project=project or None)
+            sys.exit(0)
 
-    # 调 Qwen 做摘要
-    summary = summarize_with_qwen(conversation, project)
+        # 调 Qwen 做摘要
+        summary = summarize_with_qwen(conversation, project)
+        log_event(
+            "session_end",
+            "summary_generated",
+            project=project or None,
+            completed_count=len(summary.get("completed", [])) if summary else 0,
+            finding_count=len(summary.get("findings", [])) if summary else 0,
+            next_action_count=len(summary.get("next_actions", [])) if summary else 0,
+            status="ok" if summary else "skipped",
+        )
 
-    # 写回记忆
-    if summary:
-        update_memory(project, summary, cwd)
-        # 自动推送到 GitHub
-        from datetime import datetime
-        date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-        os.system(f'cd D:/KealanMemory && git add . && git commit -m "sync: {date_str}" && git push')
+        # 写回记忆
+        if summary:
+            write_status = update_memory(project, summary, cwd)
+            log_event("session_end", "writeback", project=project or None, **write_status)
+            sync_status = sync_memory_changes()
+            log_event("session_end", "git_sync", project=project or None, **sync_status)
+    except Exception as exc:
+        log_exception("session_end", "hook_failed", exc)
 
     sys.exit(0)
 

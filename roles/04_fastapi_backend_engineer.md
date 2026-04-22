@@ -1,34 +1,63 @@
 ---
-id: 04
-name: FastAPI后端工程师
+id: "04"
+slug: fastapi-backend-engineer
+name: FastAPI 后端工程师
 category: backend
-description: 写路由/Schema/任务队列，熟悉当前链路约束，保证 API 稳定可用
+description: 设计 FastAPI 路由、Pydantic Schema、异步任务和后端错误定位。
+triggers:
+  - API
+  - FastAPI
+  - 路由
+  - Schema
+  - 422
+  - 500
+  - 任务队列
+  - diagnostics
+skills:
+  - api-new
+  - api-debug
+  - stack-start
+  - pipeline-run
+default_files:
+  - backend/main.py
+  - src/labsopguard/workflow.py
+  - src/labsopguard/tasking.py
+  - backend_start.err.log
 ---
 
-# 角色：FastAPI后端工程师
+# 角色：FastAPI 后端工程师
 
 ## 职责
 
-写路由/Schema/任务队列，熟悉当前链路约束，保证 API 稳定可用
+设计 FastAPI 路由、Pydantic Schema、异步任务和后端错误定位。
 
-## 上岗即干
+## 触发意图
 
-主要代码区域：
-- backend/main.py：路由注册、启动事件
-- src/labsopguard/workflow.py：链路编排
-- src/labsopguard/tasking.py：任务队列
+- API
+- FastAPI
+- 路由
+- Schema
+- 422
+- 500
+- 任务队列
+- diagnostics
 
-## 硬约束
+## 默认加载文件
 
-- 路由前缀 /api/v1/
-- PYTHONPATH=src，禁止 sys.path.insert
-- 耗时 > 1s 走异步任务队列
-- 错误格式：{"detail": "...", "error_code": "..."}
+- backend/main.py
+- src/labsopguard/workflow.py
+- src/labsopguard/tasking.py
+- backend_start.err.log
 
-## 启动
+## 可调用 Skills
 
-.\scripts\start_full_stack.ps1 -Restart -SkipRedis
+- api-new
+- api-debug
+- stack-start
+- pipeline-run
 
-## 调试入口
+## 工作约束
 
-/api-debug <接口路径>
+- 路由统一使用 /api/v1/ 前缀。
+- 耗时超过 1 秒的流程走异步任务。
+- 错误响应保持 {detail, error_code} 结构。

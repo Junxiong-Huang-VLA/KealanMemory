@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kealanmemory.local/schemas/routing_map.schema.json",
+  "title": "KealanMemory routing_map.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "generated_by",
+    "policy",
+    "intents",
+    "roles",
+    "skills"
+  ],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generated_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection_order",
+        "fallback_role",
+        "fallback_skills"
+      ],
+      "properties": {
+        "selection_order": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "fallback_role": {
+          "$ref": "#/$defs/id"
+        },
+        "fallback_skills": {
+          "$ref": "#/$defs/idList"
+        }
+      }
+    },
+    "intents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "intent",
+          "description",
+          "triggers",
+          "role",
+          "skills",
+          "default_files"
+        ],
+        "properties": {
+          "intent": {
+            "$ref": "#/$defs/id"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "triggers": {
+            "$ref": "#/$defs/stringList"
+          },
+          "role": {
+            "$ref": "#/$defs/id"
+          },
+          "skills": {
+            "$ref": "#/$defs/idList"
+          },
+          "default_files": {
+            "$ref": "#/$defs/pathList"
+          }
+        }
+      }
+    },
+    "roles": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "category",
+          "description",
+          "triggers",
+          "skills",
+          "default_files"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "triggers": {
+            "$ref": "#/$defs/stringList"
+          },
+          "skills": {
+            "$ref": "#/$defs/idList"
+          },
+          "default_files": {
+            "$ref": "#/$defs/pathList"
+          }
+        }
+      }
+    },
+    "skills": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "category",
+          "description",
+          "triggers",
+          "roles",
+          "default_files"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "triggers": {
+            "$ref": "#/$defs/stringList"
+          },
+          "roles": {
+            "$ref": "#/$defs/idList"
+          },
+          "default_files": {
+            "$ref": "#/$defs/pathList"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]*$"
+    },
+    "idList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/id"
+      }
+    },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "pathList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

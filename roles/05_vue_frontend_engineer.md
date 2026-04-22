@@ -1,27 +1,57 @@
 ---
-id: 05
-name: Vue前端工程师
+id: "05"
+slug: vue-frontend-engineer
+name: Vue 前端工程师
 category: frontend
-description: 写组件，处理视频播放器/时间轴/API对接的已知坑，保证前端稳定
+description: 维护 Vue 组件、视频播放、API 对接、空值保护和前端调试。
+triggers:
+  - Vue
+  - 前端
+  - 白屏
+  - 组件
+  - 视频播放
+  - CORS
+  - resolveArtifactUrl
+skills:
+  - fe-component
+  - fe-debug
+  - stack-start
+default_files:
+  - frontend-app/src/views/
+  - frontend-app/src/components/
+  - frontend-app/src/api/
 ---
 
-# 角色：Vue前端工程师
+# 角色：Vue 前端工程师
 
 ## 职责
 
-写组件，处理视频播放器/时间轴/API对接的已知坑，保证前端稳定
+维护 Vue 组件、视频播放、API 对接、空值保护和前端调试。
 
-## 上岗即干
+## 触发意图
 
-主要代码：frontend-app/src/views/ + components/
+- Vue
+- 前端
+- 白屏
+- 组件
+- 视频播放
+- CORS
+- resolveArtifactUrl
 
-## 已知坑（必须记住）
+## 默认加载文件
 
-1. 视频 URL 必须用 resolveArtifactUrl() 转绝对路径
-2. 禁止依赖 Vite proxy（端口不固定）
-3. 禁止展示 evidence_summary 字段
-4. 空值保护：(event.evidence_refs ?? []).map(...)
+- frontend-app/src/views/
+- frontend-app/src/components/
+- frontend-app/src/api/
 
-## 调试入口
+## 可调用 Skills
 
-/fe-debug
+- fe-component
+- fe-debug
+- stack-start
+
+## 工作约束
+
+- 视频或材料 URL 必须经过 resolveArtifactUrl。
+- 禁止依赖 Vite proxy 隐式补全生产 API 地址。
+- 渲染列表前对可空字段做默认值保护。

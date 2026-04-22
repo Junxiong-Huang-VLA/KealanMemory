@@ -11,19 +11,10 @@
 - 孤立任务自动恢复机制
 - 旧实验补发 clip 接口（/materials/publish）
 - steps.json 无 required_event_types 时自动注入
-- 跨项目本地记忆系统（D:/KealanMemory/）
-- playbook 角色文档（12个）+ skills（7个）
-- 记忆系统全自动 hooks（SessionStart/SessionEnd）
-- 通用 AI 接入协议（boot/AI_ONBOARDING.md）
 - 前端崩溃修复（evidence_refs 空值保护 + ErrorBoundary）
 - 关键素材标注升级（PIL 渲染 + 手物交互连线）
-- KealanMemory Web 界面（http://localhost:7777）
-- 20个通用 Skills + 14个角色文档
-- 开工/收工全局协议
 - 从 D:/cvdemo 合并标注数据（639张，补全 tube/tube-cap/spearhead/pipette/beaker 五类）
 - 迁入 RealSense 采集+自动标注+可视化等 8 个工具脚本
-- 新电脑一键安装包（install/setup.py）
-- 记忆系统 Git 同步（GitHub 私有仓库，收工自动 push）
 
 ## 待完成（按优先级）
 
@@ -48,5 +39,3 @@ mAP50=0.977 / mAP50-95=0.925（测试集）
 - **做了什么**：
   - 从 D:/cvdemo 合并 639 张标注图片，补全 tube/tube-cap/spearhead/pipette/beaker 五类
   - 迁入 8 个工具脚本（RealSense 采集/实时检测/自动标注/数据合并等）
-  - 建立新电脑一键安装包（install/setup.py + setup.bat）
-  - 记忆系统接入 GitHub 私有仓库，收工自动 push

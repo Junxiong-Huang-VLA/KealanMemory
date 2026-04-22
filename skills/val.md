@@ -2,20 +2,64 @@
 id: val
 name: /val
 category: 检测与训练
-description: 测试集完整评估：各类 mAP/P/R + 混淆矩阵 + 最佳检测样图
+description: 对当前或指定权重做测试集评估，产出 mAP/P/R、混淆矩阵和弱类分析。
+triggers:
+  - 验证
+  - 评估
+  - mAP
+  - confusion_matrix
+  - 测试集
+  - val
+roles:
+  - yolo-trainer
+  - dataset-engineer
+  - experiment-recorder
+default_files:
+  - configs/model/detection_runtime.yaml
+  - data/dataset/dataset.yaml
+  - outputs/val/
 ---
 
-# /val — 模型评估
+# /val - 对当前或指定权重做测试集评估，产出 mAP/P/R、混淆矩阵和弱类分析。
 
-## 执行步骤
+## 适用场景
 
-1. 读取当前权重路径（configs/model/detection_runtime.yaml → model 字段）
-2. 跑测试集验证并生成统计图：
-   ```bash
-   yolo val model=<path> data=data/dataset/dataset.yaml \
-     imgsz=640 split=test save=True plots=True \
-     project=outputs/val name=<run_name>_test
-   ```
-3. 生成各类最佳检测样图：python tools/export_best_per_class.py
-4. 依次展示：confusion_matrix_normalized.png / BoxPR_curve.png / BoxF1_curve.png / 各类样图
-5. 输出各类 P/R/mAP50/mAP50-95 汇总表，标注强/弱类别
+- 切换权重前验证质量。
+- 论文或报告需要检测指标。
+
+## 输入
+
+- model 路径
+- split
+- run_name
+
+## 输出
+
+- yolo val 命令
+- 指标表
+- 混淆矩阵和曲线路径
+- 强弱类别结论
+
+## 执行流程
+
+1. 读取当前权重路径。
+2. 生成 yolo val 命令并使用 split=test。
+3. 检查 confusion_matrix、PR/F1 曲线和 per-class 指标。
+4. 标注强类、弱类和下一步补样方向。
+
+## 失败处理
+
+- 权重不可读时停止切换并回退到上一个 best.pt。
+- 测试集为空时转入 /dataset 修复划分。
+
+## 关联角色
+
+- yolo-trainer
+- dataset-engineer
+- experiment-recorder
+
+## 默认文件
+
+- configs/model/detection_runtime.yaml
+- data/dataset/dataset.yaml
+- outputs/val/

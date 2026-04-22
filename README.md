@@ -102,6 +102,28 @@ D:\KealanMemory\
 
 ## 维护指南
 
+### 健康检查
+```bash
+python D:/KealanMemory/boot/check_memory_consistency.py
+```
+检查 JSON、Python、PowerShell、路径漂移、疑似密钥、项目索引、role/skill frontmatter 和 routing map。结果必须为 `0 failed` 后再同步。
+
+### 依赖安装
+```bash
+python -m pip install -r D:/KealanMemory/requirements.txt
+```
+安装脚本不会默认污染全局 Python 环境；新机器先选择目标环境，再安装依赖。
+
+### 自动 Git 同步开关
+默认只写回记忆文件，不自动提交或推送。
+
+```powershell
+$env:KEALAN_MEMORY_AUTO_COMMIT="1"  # 允许白名单文件自动提交
+$env:KEALAN_MEMORY_AUTO_PUSH="1"    # 允许提交后自动推送
+```
+
+自动同步只处理 `context/` 和 `projects/`，并会先做疑似密钥扫描。
+
 ### 新建项目记忆
 ```bash
 # 复制模板
@@ -122,3 +144,33 @@ cp -r D:/KealanMemory/projects/_template D:/KealanMemory/projects/新项目名
 - `projects/<项目名>/current_status.md`（完成了什么、新的待办）
 - `projects/<项目名>/next_actions.md`（下次要做什么）
 - `context/active_focus.md`（如果焦点变了）
+
+---
+
+## Project lifecycle CLI
+
+```bash
+python D:/KealanMemory/boot/project_manager.py list
+python D:/KealanMemory/boot/project_manager.py list --archived
+python D:/KealanMemory/boot/project_manager.py create NewProject
+python D:/KealanMemory/boot/project_manager.py archive NewProject
+python D:/KealanMemory/boot/project_manager.py validate
+```
+
+- `create` copies `projects/_template` to `projects/<name>` and registers the project in `boot/memory_map.json`.
+- `archive` moves `projects/<name>` to `archive/old_projects/<name>-YYYYMMDD-HHMMSS` and removes it from `boot/memory_map.json`.
+- Add `--dry-run` to `create` or `archive` to preview changes without writing files.
+- `validate` checks registered project directories and required project memory files.
+
+## History search and injection CLI
+
+```bash
+python D:/KealanMemory/boot/history_search.py architecture
+python D:/KealanMemory/boot/history_search.py context/history/2026-04-architecture-decisions.md --inject
+python D:/KealanMemory/boot/load_memory.py --project LabSOPGuard --history architecture
+python D:/KealanMemory/boot/load_memory.py --history context/history/2026-04-pipeline-integration.md
+```
+
+- `history_search.py` accepts a keyword/phrase or an explicit markdown file under `context/history/`.
+- `load_memory.py --history <keyword-or-file>` appends matched history files to `assembled_context.txt`.
+- `--history` can be repeated when multiple historical contexts are needed.

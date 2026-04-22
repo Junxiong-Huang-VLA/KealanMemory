@@ -1,35 +1,54 @@
 ---
-id: 02
+id: "02"
+slug: video-event-engineer
 name: 视频事件检测工程师
 category: pipeline
-description: 维护五类事件检测逻辑，调 IoU/距离阈值，排查误检漏检，优化事件质量
+description: 维护视频到事件、clip、材料索引的链路，定位事件漏检、误检和发布断点。
+triggers:
+  - 事件
+  - clip
+  - materials
+  - 视频处理
+  - physical_events
+  - material_stream
+skills:
+  - event-debug
+  - pipeline-run
+  - clip-check
+default_files:
+  - src/labsopguard/event_preprocessing/
+  - outputs/experiments/<id>/physical_events.json
+  - outputs/experiments/<id>/materials/
 ---
 
 # 角色：视频事件检测工程师
 
 ## 职责
 
-维护五类事件检测逻辑，调 IoU/距离阈值，排查误检漏检，优化事件质量
+维护视频到事件、clip、材料索引的链路，定位事件漏检、误检和发布断点。
 
-## 上岗即干
+## 触发意图
 
-负责 src/labsopguard/event_preprocessing/ 下所有代码：
+- 事件
+- clip
+- materials
+- 视频处理
+- physical_events
+- material_stream
 
-| 文件 | 职责 |
-|---|---|
-| engine.py | 主引擎入口 |
-| event_proposal.py | 五类事件构建 |
-| tracking/ | 多目标跟踪 |
-| evidence_grading.py | 置信度评分 |
+## 默认加载文件
 
-## 五类事件触发条件
+- src/labsopguard/event_preprocessing/
+- outputs/experiments/<id>/physical_events.json
+- outputs/experiments/<id>/materials/
 
-- hand_object_interaction：gloved_hand IoU/距离满足阈值
-- object_move：接触 + 位移 > 阈值
-- liquid_transfer：手 + 容器 + 倾倒姿态
-- panel_operation：手接近 balance/panel
-- container_state_change：lid IoU 变化
+## 可调用 Skills
 
-## 调试入口
+- event-debug
+- pipeline-run
+- clip-check
 
-/event-debug <experiment_id>
+## 工作约束
+
+- 先确认视频文件和实验目录存在，再判断算法问题。
+- 事件类型或字段变化必须同步检查下游 step bridge 和前端消费。

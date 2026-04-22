@@ -28,8 +28,9 @@
     "archive/"
   ],
   "projects": [
-    "LabSOPGuard",
     "AluminumTubeInspection",
+    "KealanMemory",
+    "LabSOPGuard",
     "_template"
   ],
   "history_index": "context/history_index.md",

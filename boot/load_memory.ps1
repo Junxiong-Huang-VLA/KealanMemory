@@ -1,93 +1,126 @@
-# load_memory.ps1 — 本地记忆加载脚本（PowerShell）
-# 用法：
-#   .\load_memory.ps1                          # 仅核心记忆
-#   .\load_memory.ps1 -Project LabSOPGuard     # 核心 + 项目记忆
-#   .\load_memory.ps1 -Project LabSOPGuard -Full  # 追加完整规范
-#   .\load_memory.ps1 -List                    # 列出可用项目
+# Local memory loader (PowerShell)
+# Usage:
+#   .\load_memory.ps1
+#   .\load_memory.ps1 -Project LabSOPGuard
+#   .\load_memory.ps1 -Project LabSOPGuard -Full
+#   .\load_memory.ps1 -List
 
 param(
     [string]$Project = "",
-    [switch]$Full = $false,
-    [switch]$List = $false,
-    [string]$Output = "D:\KealanMemory\boot\assembled_context.txt"
+    [switch]$Full,
+    [switch]$List,
+    [string]$Output = ""
 )
 
-$ROOT = "D:\KealanMemory"
-$MapFile = "$ROOT\boot\memory_map.json"
+$ErrorActionPreference = "Stop"
 
-# 读取 memory_map.json
-$map = Get-Content $MapFile -Encoding UTF8 | ConvertFrom-Json
-
-# 列出项目
-if ($List) {
-    Write-Host "可用项目："
-    foreach ($p in $map.projects) {
-        if ($p -ne "_template") {
-            $briefPath = "$ROOT\projects\$p\project_brief.md"
-            $status = if (Test-Path $briefPath) { "✓" } else { "✗" }
-            Write-Host "  $status $p"
-        }
+function Resolve-MemoryRoot {
+    if ($env:KEALAN_MEMORY_ROOT) {
+        return (Resolve-Path -LiteralPath $env:KEALAN_MEMORY_ROOT).Path
     }
-    exit
+
+    return (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot "..")).Path
+}
+
+function Read-MemoryFile {
+    param(
+        [Parameter(Mandatory = $true)][string]$RelPath,
+        [string]$ProjectName = "",
+        [switch]$Optional
+    )
+
+    $displayPath = $RelPath -replace "\{project\}", $ProjectName
+    $absPath = Join-Path $script:Root $displayPath
+    if (-not (Test-Path -LiteralPath $absPath -PathType Leaf)) {
+        if (-not $Optional) {
+            Write-Warning "Skipping missing file: $absPath"
+        }
+        return ""
+    }
+
+    $content = Get-Content -LiteralPath $absPath -Encoding UTF8 -Raw
+    $separator = "`n`n" + ("=" * 60) + "`n# Source: $displayPath`n" + ("=" * 60) + "`n"
+    return $separator + $content.Trim()
+}
+
+$script:Root = Resolve-MemoryRoot
+$MapFile = Join-Path $Root "boot\memory_map.json"
+$map = Get-Content -LiteralPath $MapFile -Encoding UTF8 -Raw | ConvertFrom-Json
+
+if (-not $Output) {
+    $Output = Join-Path $Root "boot\assembled_context.txt"
+}
+
+if ($List) {
+    Write-Host "Memory root: $Root"
+    Write-Host "Available projects:"
+    foreach ($p in $map.projects) {
+        if ($p -eq "_template") {
+            continue
+        }
+        $briefPath = Join-Path $Root "projects\$p\project_brief.md"
+        $status = if (Test-Path -LiteralPath $briefPath -PathType Leaf) { "[ok]" } else { "[--]" }
+        Write-Host "  $status $p"
+    }
+    exit 0
 }
 
 $chunks = @()
-$chunks += "# 个人记忆上下文（自动生成）"
-$chunks += "# 项目：$( if ($Project) { $Project } else { '（无）' } )"
+$mode = if ($Full) { "full" } else { "standard" }
+$projectName = if ($Project) { $Project } else { "(none)" }
+$chunks += "# Personal Memory Context (generated)"
+$chunks += "# Project: $projectName"
+$chunks += "# Load mode: $mode"
+$chunks += "# Usage: paste this file into Claude, or see boot/startup_prompt.md"
 $chunks += ""
 
-# 函数：读取单个文件
-function Read-MemoryFile($relPath, $project = "") {
-    $fullPath = $relPath -replace "\{project\}", $project
-    $absPath = Join-Path $ROOT $fullPath
-    if (-not (Test-Path $absPath)) {
-        Write-Warning "跳过（不存在）：$absPath"
-        return ""
-    }
-    $content = Get-Content $absPath -Encoding UTF8 -Raw
-    $sep = "`n`n" + ("=" * 60) + "`n# 来源：$fullPath`n" + ("=" * 60) + "`n"
-    return $sep + $content
-}
-
-# 1. 核心记忆
-Write-Host "加载核心记忆..."
+Write-Host "Memory root: $Root"
+Write-Host "Loading core memory..."
 foreach ($relPath in $map.default_load) {
-    $chunk = Read-MemoryFile $relPath
+    $chunk = Read-MemoryFile -RelPath $relPath
     if ($chunk) {
         $chunks += $chunk
-        Write-Host "  ✓ $relPath"
+        Write-Host "  [ok] $relPath"
     }
 }
 
-# 2. 项目记忆
 if ($Project) {
-    Write-Host "`n加载项目记忆：$Project..."
+    if ($map.projects -notcontains $Project) {
+        Write-Warning "Project '$Project' is not listed in memory_map.json; trying to load it anyway."
+    }
+    Write-Host "`nLoading project memory: $Project..."
     foreach ($relPath in $map.project_load) {
-        $chunk = Read-MemoryFile $relPath $Project
+        $chunk = Read-MemoryFile -RelPath $relPath -ProjectName $Project
         if ($chunk) {
             $chunks += $chunk
             $display = $relPath -replace "\{project\}", $Project
-            Write-Host "  ✓ $display"
+            Write-Host "  [ok] $display"
         }
     }
 }
 
-# 3. 完整规范
 if ($Full) {
-    Write-Host "`n加载完整规范..."
-    $optionalRules = $map.optional_load | Where-Object { -not $_.StartsWith("projects/") }
-    foreach ($relPath in $optionalRules) {
-        $chunk = Read-MemoryFile $relPath $Project
+    Write-Host "`nLoading optional memory..."
+    foreach ($relPath in $map.optional_load) {
+        $isProjectPath = $relPath.StartsWith("projects/")
+        if ($isProjectPath -and -not $Project) {
+            continue
+        }
+
+        $chunk = Read-MemoryFile -RelPath $relPath -ProjectName $Project -Optional
         if ($chunk) {
             $chunks += $chunk
-            Write-Host "  ✓ $relPath"
+            $display = $relPath -replace "\{project\}", $Project
+            Write-Host "  [ok] $display"
         }
     }
 }
 
-# 输出到文件
-$output_content = $chunks -join "`n"
-$output_content | Out-File -FilePath $Output -Encoding UTF8
-$sizeKB = [math]::Round((Get-Item $Output).Length / 1024, 1)
-Write-Host "`n✓ 已输出到：$Output（$sizeKB KB）"
-Write-Host "  复制文件内容粘贴给 Claude 即可。"
+$outputDir = Split-Path -Parent $Output
+if ($outputDir) {
+    New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+}
+
+($chunks -join "`n") | Out-File -LiteralPath $Output -Encoding UTF8
+$sizeKB = [math]::Round((Get-Item -LiteralPath $Output).Length / 1024, 1)
+Write-Host "`n[ok] Wrote output to: $Output ($sizeKB KB)"
