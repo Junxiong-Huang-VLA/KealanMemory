@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "root": "D:/KealanMemory",
+  "default_load": [
+    "profile/identity.md",
+    "profile/work_style.md",
+    "profile/preferences.md",
+    "operating_rules/communication_rules.md",
+    "context/active_focus.md",
+    "context/global_constraints.md"
+  ],
+  "project_load": [
+    "projects/{project}/project_brief.md",
+    "projects/{project}/current_status.md",
+    "projects/{project}/constraints.md",
+    "projects/{project}/next_actions.md"
+  ],
+  "optional_load": [
+    "profile/expertise.md",
+    "operating_rules/coding_rules.md",
+    "operating_rules/project_rules.md",
+    "operating_rules/environment_rules.md",
+    "projects/{project}/decisions.md",
+    "projects/{project}/milestones.md"
+  ],
+  "on_demand_only": [
+    "context/history/",
+    "archive/"
+  ],
+  "projects": [
+    "LabSOPGuard",
+    "AluminumTubeInspection",
+    "_template"
+  ],
+  "history_index": "context/history_index.md",
+  "output_file": "boot/assembled_context.txt"
+}

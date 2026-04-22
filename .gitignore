@@ -1,0 +1,8 @@
+boot/assembled_context.txt
+boot/write_skills.py
+boot/rebuild_ui.py
+__pycache__/
+*.pyc
+*.pyo
+web/__pycache__/
+web/templates/__pycache__/

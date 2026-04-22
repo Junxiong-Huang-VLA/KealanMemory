@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KealanMemory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  background: #fff; color: #111;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 13.5px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ── */
+.layout { display: flex; height: 100vh; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+  border-right: 1px solid #ebebeb;
+  background: #fafafa;
+  display: flex; flex-direction: column;
+}
+.logo-wrap { padding: 24px 18px 18px; border-bottom: 1px solid #ebebeb; }
+.logo-mark { display: flex; align-items: center; gap: 9px; }
+.logo-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: #111; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+}
+.logo-text { font-size: 14px; font-weight: 700; color: #111; letter-spacing: -.3px; }
+.logo-sub { font-size: 11px; color: #bbb; margin-top: 4px; padding-left: 37px; }
+
+nav { flex: 1; padding: 10px; display: flex; flex-direction: column; gap: 1px; }
+.nav-section {
+  font-size: 10px; font-weight: 600; color: #ccc;
+  letter-spacing: 1px; text-transform: uppercase;
+  padding: 12px 8px 5px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: 7px;
+  color: #666; font-size: 13px; font-weight: 500;
+  cursor: pointer; user-select: none;
+  transition: background .12s, color .12s;
+}
+.nav-item:hover { background: #f0f0f0; color: #111; }
+.nav-item.active { background: #111; color: #fff; }
+.nav-icon { width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-badge { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: 20px; background: #eee; color: #999; }
+.nav-item.active .nav-badge { background: #333; color: #aaa; }
+
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid #ebebeb; }
+.sidebar-footer .path { font-size: 10.5px; font-family: 'JetBrains Mono', monospace; color: #ccc; }
+.status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; margin-right: 5px; }
+
+/* ── Main ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+/* ── Topbar ── */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 24px; height: 54px;
+  border-bottom: 1px solid #ebebeb; background: #fff; flex-shrink: 0;
+}
+.topbar-title { font-size: 14px; font-weight: 600; color: #111; }
+.spacer { flex: 1; }
+.search-wrap { position: relative; display: none; }
+.search-wrap.visible { display: block; }
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 13px; height: 13px; stroke: #bbb; fill: none; stroke-width: 1.8; }
+.search-box {
+  background: #f5f5f5; border: 1px solid #ebebeb; border-radius: 7px;
+  padding: 7px 10px 7px 30px; color: #111; font-size: 13px;
+  width: 210px; outline: none; transition: border-color .15s, background .15s;
+}
+.search-box::placeholder { color: #bbb; }
+.search-box:focus { border-color: #bbb; background: #fff; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 7px; border: none;
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  font-family: inherit; transition: all .12s; white-space: nowrap;
+}
+.btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+.btn-primary { background: #111; color: #fff; }
+.btn-primary:hover { background: #2a2a2a; }
+.btn-ghost { background: #fff; color: #555; border: 1px solid #e0e0e0; }
+.btn-ghost:hover { background: #f5f5f5; border-color: #ccc; color: #111; }
+
+/* ── Content ── */
+.content { flex: 1; overflow-y: auto; padding: 24px 26px; scrollbar-width: thin; scrollbar-color: #e0e0e0 transparent; }
+.content::-webkit-scrollbar { width: 4px; }
+.content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── Home ── */
+.home-hero { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 24px; }
+.stat-card {
+  background: #fff; border: 1px solid #ebebeb; border-radius: 10px;
+  padding: 18px 20px; position: relative;
+  transition: border-color .15s, box-shadow .15s;
+}
+.stat-card:hover { border-color: #ccc; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
+.stat-num { font-size: 34px; font-weight: 700; color: #111; letter-spacing: -1.5px; line-height: 1; margin-bottom: 5px; }
+.stat-label { font-size: 12px; color: #999; font-weight: 500; }
+.stat-icon { position: absolute; right: 16px; top: 16px; width: 30px; height: 30px; border-radius: 8px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
+.stat-icon svg { width: 14px; height: 14px; stroke: #888; fill: none; stroke-width: 1.8; }
+
+.section-title { font-size: 11px; font-weight: 600; color: #bbb; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+.focus-card { background: #fff; border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; }
+.focus-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid #f2f2f2; background: #fafafa;
+}
+.focus-card-title { font-size: 13px; font-weight: 600; color: #111; display: flex; align-items: center; gap: 7px; }
+.focus-card-title svg { width: 13px; height: 13px; stroke: #999; fill: none; stroke-width: 2; }
+.focus-card-body { padding: 16px; font-size: 12px; color: #555; line-height: 1.85; white-space: pre-wrap; font-family: 'JetBrains Mono', monospace; max-height: 300px; overflow-y: auto; }
+
+/* ── Filters ── */
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+.filter-chip {
+  padding: 5px 12px; border-radius: 20px;
+  border: 1px solid #e5e5e5; background: #fff;
+  color: #666; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.filter-chip:hover { border-color: #ccc; color: #111; }
+.filter-chip.active { background: #111; border-color: #111; color: #fff; }
+
+/* ── Cards ── */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: 10px; }
+.card {
+  background: #fff; border: 1px solid #ebebeb; border-radius: 10px;
+  padding: 16px 16px 22px; cursor: pointer; position: relative;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+.card:hover { border-color: #bbb; box-shadow: 0 2px 12px rgba(0,0,0,.07); transform: translateY(-1px); }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; gap: 10px; }
+.card-name { font-size: 13.5px; font-weight: 600; color: #111; font-family: 'JetBrains Mono', monospace; letter-spacing: -.2px; }
+.cat-badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; background: #f2f2f2; color: #777; border: 1px solid #e8e8e8; }
+.card-desc { font-size: 12.5px; color: #777; line-height: 1.6; }
+.card-arrow { position: absolute; right: 14px; bottom: 12px; opacity: 0; transform: translateX(-4px); transition: all .15s; }
+.card-arrow svg { width: 14px; height: 14px; stroke: #aaa; fill: none; stroke-width: 2; }
+.card:hover .card-arrow { opacity: 1; transform: translateX(0); }
+
+/* ── Detail Panel ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,.12); z-index: 90; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.overlay.open { opacity: 1; pointer-events: all; }
+.detail-panel {
+  position: fixed; right: 0; top: 0; width: 500px; height: 100vh;
+  background: #fff; border-left: 1px solid #ebebeb;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+  z-index: 100; box-shadow: -6px 0 24px rgba(0,0,0,.07);
+}
+.detail-panel.open { transform: translateX(0); }
+.detail-header { display: flex; align-items: center; gap: 12px; padding: 18px 20px 16px; border-bottom: 1px solid #f2f2f2; flex-shrink: 0; }
+.detail-header-info { flex: 1; min-width: 0; }
+.detail-cat { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #bbb; margin-bottom: 4px; }
+.detail-title { font-size: 15px; font-weight: 700; color: #111; font-family: 'JetBrains Mono', monospace; letter-spacing: -.3px; }
+.detail-close {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: #f5f5f5; border: 1px solid #ebebeb;
+  color: #888; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .12s; flex-shrink: 0;
+}
+.detail-close:hover { background: #eee; color: #111; }
+.detail-close svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.detail-body { flex: 1; overflow-y: auto; padding: 20px; scrollbar-width: thin; scrollbar-color: #e5e5e5 transparent; }
+.detail-body::-webkit-scrollbar { width: 4px; }
+.detail-body::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 2px; }
+
+/* ── Markdown ── */
+.md h1 { font-size: 15px; font-weight: 700; color: #111; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
+.md h2 { font-size: 13px; font-weight: 600; color: #111; margin: 20px 0 9px; display: flex; align-items: center; gap: 8px; }
+.md h2::before { content: ''; display: inline-block; width: 3px; height: 12px; border-radius: 2px; background: #111; flex-shrink: 0; }
+.md h3 { font-size: 11px; font-weight: 600; color: #aaa; margin: 14px 0 7px; text-transform: uppercase; letter-spacing: .6px; }
+.md p { color: #444; line-height: 1.75; margin-bottom: 10px; font-size: 13px; }
+.md pre { background: #f8f8f8; border: 1px solid #ebebeb; border-radius: 8px; padding: 14px 16px; overflow-x: auto; margin: 10px 0; }
+.md code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #111; line-height: 1.65; }
+.md :not(pre) > code { background: #f3f3f3; border: 1px solid #e5e5e5; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+.md ul, .md ol { padding-left: 18px; margin-bottom: 10px; }
+.md li { color: #444; line-height: 1.75; font-size: 13px; margin-bottom: 2px; }
+.md li::marker { color: #ccc; }
+.md strong { color: #111; font-weight: 600; }
+.md table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12.5px; }
+.md th { background: #f8f8f8; color: #555; font-weight: 600; padding: 7px 11px; text-align: left; border: 1px solid #ebebeb; }
+.md td { padding: 7px 11px; border: 1px solid #ebebeb; color: #444; }
+.md tr:hover td { background: #fafafa; }
+
+/* ── Memory ── */
+.memory-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+.project-select { background: #fff; border: 1px solid #e5e5e5; border-radius: 7px; padding: 7px 11px; color: #111; font-size: 13px; font-family: inherit; outline: none; cursor: pointer; transition: border-color .15s; }
+.project-select:focus { border-color: #bbb; }
+.context-wrap { border: 1px solid #ebebeb; border-radius: 10px; overflow: hidden; }
+.context-header { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #f2f2f2; background: #fafafa; }
+.context-header-left { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #aaa; font-family: 'JetBrains Mono', monospace; }
+.ctx-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ctx-dot.r { background: #ff5f57; } .ctx-dot.y { background: #febc2e; } .ctx-dot.g { background: #28c840; }
+.context-box { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.85; color: #555; white-space: pre-wrap; max-height: calc(100vh - 230px); overflow-y: auto; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: #fff; border: 1px solid #e5e5e5; border-radius: 9px;
+  padding: 11px 16px 11px 12px; font-size: 13px; color: #111;
+  display: flex; align-items: center; gap: 9px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.1);
+  transform: translateY(12px); opacity: 0;
+  transition: all .22s; z-index: 999; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-icon { width: 20px; height: 20px; border-radius: 50%; background: #f0fdf4; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.toast-icon svg { width: 11px; height: 11px; stroke: #16a34a; fill: none; stroke-width: 2.5; }
+</style>
+</head>
+<body>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeDetail()"></div>
+
+<div class="layout">
+
+  <!-- ── Sidebar ────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="logo-wrap">
+      <div class="logo-mark">
+        <div class="logo-icon">⬡</div>
+        <div class="logo-text">KealanMemory</div>
+      </div>
+      <div class="logo-sub">个人记忆系统 v2</div>
+    </div>
+
+    <nav>
+      <div class="nav-section">导航</div>
+
+      <div class="nav-item active" id="nav-home" onclick="showTab('home')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+        总览
+        <span class="nav-badge" id="badge-home"></span>
+      </div>
+
+      <div class="nav-item" id="nav-memory" onclick="showTab('memory')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+        记忆上下文
+      </div>
+
+      <div class="nav-item" id="nav-skills" onclick="showTab('skills')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+        Skill 库
+        <span class="nav-badge" id="badge-skills">—</span>
+      </div>
+
+      <div class="nav-item" id="nav-roles" onclick="showTab('roles')">
+        <span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>
+        角色库
+        <span class="nav-badge" id="badge-roles">—</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="path"><span class="status-dot"></span>D:/KealanMemory</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ──────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">总览</div>
+      <div class="spacer"></div>
+      <div class="search-wrap" id="search-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-box" id="search-input" placeholder="搜索名称或描述…" oninput="handleSearch()">
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── Home ── -->
+      <div class="tab-content active" id="tab-home">
+        <div class="home-hero">
+          <div class="stat-card">
+            <div class="stat-num" id="stat-skills">—</div>
+            <div class="stat-label">Skills 可用</div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-roles">—</div>
+            <div class="stat-label">角色定义</div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="stat-projects">—</div>
+            <div class="stat-label">活跃项目</div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">当前焦点</div>
+        <div class="focus-card">
+          <div class="focus-card-header">
+            <div class="focus-card-title">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              active_focus.md
+            </div>
+            <button class="btn btn-ghost" onclick="showTab('memory')" style="padding:5px 10px;font-size:12px">查看全部记忆</button>
+          </div>
+          <div class="focus-card-body" id="focus-block">加载中…</div>
+        </div>
+      </div>
+
+      <!-- ── Memory ── -->
+      <div class="tab-content" id="tab-memory">
+        <div class="memory-controls">
+          <select class="project-select" id="project-select" onchange="loadMemory()">
+            <option value="">仅核心记忆</option>
+          </select>
+          <button class="btn btn-primary" onclick="copyMemory()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            复制到剪贴板
+          </button>
+        </div>
+        <div class="context-wrap">
+          <div class="context-header">
+            <div class="context-header-left">
+              <div class="ctx-dot r"></div>
+              <div class="ctx-dot y"></div>
+              <div class="ctx-dot g"></div>
+              <span style="margin-left:6px">assembled_context</span>
+            </div>
+            <span style="font-size:11px;color:var(--text3)" id="ctx-chars">— chars</span>
+          </div>
+          <div class="context-box" id="context-box">加载中…</div>
+        </div>
+      </div>
+
+      <!-- ── Skills ── -->
+      <div class="tab-content" id="tab-skills">
+        <div class="filter-bar" id="skill-filters"></div>
+        <div class="cards-grid" id="skills-grid"></div>
+      </div>
+
+      <!-- ── Roles ── -->
+      <div class="tab-content" id="tab-roles">
+        <div class="filter-bar" id="role-filters"></div>
+        <div class="cards-grid" id="roles-grid"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ── Detail Panel ── -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-header">
+    <div class="detail-header-info">
+      <div class="detail-cat" id="detail-cat"></div>
+      <div class="detail-title" id="detail-title"></div>
+    </div>
+    <button class="detail-close" onclick="closeDetail()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="detail-body">
+    <div class="md" id="detail-content"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-icon">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+let allSkills = [], allRoles = [], currentSearch = '';
+
+// ── Init ──────────────────────────────────────────
+async function init() {
+  const [skills, roles, projects, focus] = await Promise.all([
+    fetch('/api/skills').then(r => r.json()),
+    fetch('/api/roles').then(r => r.json()),
+    fetch('/api/projects').then(r => r.json()),
+    fetch('/api/focus').then(r => r.json()),
+  ]);
+
+  allSkills = skills;
+  allRoles = roles;
+
+  // Stats
+  document.getElementById('stat-skills').textContent = skills.length;
+  document.getElementById('stat-roles').textContent = roles.length;
+  document.getElementById('stat-projects').textContent = projects.length;
+  document.getElementById('badge-skills').textContent = skills.length;
+  document.getElementById('badge-roles').textContent = roles.length;
+
+  // Focus
+  document.getElementById('focus-block').textContent = focus.content.trim().slice(0, 800) + (focus.content.length > 800 ? '\n...' : '');
+
+  // Project select
+  const sel = document.getElementById('project-select');
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = p;
+    sel.appendChild(opt);
+  });
+
+  buildFilters('skill-filters', skills, filterSkills);
+  buildFilters('role-filters', roles, filterRoles);
+  renderCards('skills-grid', skills);
+  renderCards('roles-grid', roles);
+  loadMemory();
+}
+
+// ── Filters ──────────────────────────────────────
+function buildFilters(containerId, items, callback) {
+  const cats = ['全部', ...new Set(items.map(i => i.category))];
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip' + (c === '全部' ? ' active' : '');
+    btn.textContent = c;
+    btn.onclick = () => {
+      container.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      callback(c === '全部' ? null : c);
+    };
+    container.appendChild(btn);
+  });
+}
+
+function filterSkills(cat) {
+  let items = cat ? allSkills.filter(s => s.category === cat) : allSkills;
+  if (currentSearch) items = items.filter(s =>
+    s.name.includes(currentSearch) || s.description.includes(currentSearch)
+  );
+  renderCards('skills-grid', items);
+}
+
+function filterRoles(cat) {
+  let items = cat ? allRoles.filter(r => r.category === cat) : allRoles;
+  if (currentSearch) items = items.filter(r =>
+    r.name.includes(currentSearch) || r.description.includes(currentSearch)
+  );
+  renderCards('roles-grid', items);
+}
+
+// ── Cards ──────────────────────────────────────
+function renderCards(containerId, items) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  if (!items.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3)">没有匹配结果</div>';
+    return;
+  }
+  items.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const catClass = 'cat-' + (item.category || '').replace(/\s/g, '-');
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-name">${esc(item.name)}</div>
+        <div class="cat-badge ${catClass}">${esc(item.category)}</div>
+      </div>
+      <div class="card-desc">${esc(item.description)}</div>
+      <div class="card-arrow">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+    `;
+    card.onclick = () => openDetail(item);
+    grid.appendChild(card);
+  });
+}
+
+// ── Detail ──────────────────────────────────────
+function openDetail(item) {
+  document.getElementById('detail-cat').textContent = item.category;
+  document.getElementById('detail-title').textContent = item.name;
+  document.getElementById('detail-content').innerHTML = renderMd(item.body);
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ── Memory ──────────────────────────────────────
+async function loadMemory() {
+  const project = document.getElementById('project-select').value;
+  document.getElementById('context-box').textContent = '加载中…';
+  const resp = await fetch(`/api/memory?project=${encodeURIComponent(project)}`);
+  const data = await resp.json();
+  document.getElementById('context-box').textContent = data.context;
+  document.getElementById('ctx-chars').textContent = data.context.length.toLocaleString() + ' chars';
+}
+
+async function copyMemory() {
+  const project = document.getElementById('project-select').value;
+  const text = document.getElementById('context-box').textContent;
+  try {
+    const resp = await fetch('/api/copy-memory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project })
+    });
+    const data = await resp.json();
+    if (data.ok) { showToast(`已复制 ${data.chars.toLocaleString()} 字符`); return; }
+  } catch (e) {}
+  // 降级
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('已复制到剪贴板');
+  } catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制（降级模式）');
+  }
+}
+
+// ── Tab ──────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  const titles = { home: '总览', memory: '记忆上下文', skills: 'Skill 库', roles: '角色库' };
+  document.getElementById('page-title').textContent = titles[name];
+  const showSearch = name === 'skills' || name === 'roles';
+  document.getElementById('search-wrap').classList.toggle('visible', showSearch);
+  if (!showSearch) { document.getElementById('search-input').value = ''; currentSearch = ''; }
+}
+
+function handleSearch() {
+  currentSearch = document.getElementById('search-input').value.trim();
+  const active = document.querySelector('.tab-content.active');
+  if (active.id === 'tab-skills') filterSkills(null);
+  if (active.id === 'tab-roles') filterRoles(null);
+}
+
+// ── Toast ──────────────────────────────────────────
+function showToast(msg) {
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Markdown ──────────────────────────────────────────
+function renderMd(md) {
+  let h = esc(md);
+  h = h.replace(/```[\w]*\n([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  h = h.replace(/`([^`\n]+)`/g, '<code>$1</code>');
+  h = h.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  h = h.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  h = h.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  h = h.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  h = h.replace(/\|(.+)\|\n\|[-\s|]+\|\n((?:\|.+\|\n?)*)/g, (_, hdr, rows) => {
+    const ths = hdr.split('|').filter(s=>s.trim()).map(s=>`<th>${s.trim()}</th>`).join('');
+    const trs = rows.trim().split('\n').map(r => {
+      const tds = r.split('|').filter(s=>s.trim()).map(s=>`<td>${s.trim()}</td>`).join('');
+      return `<tr>${tds}</tr>`;
+    }).join('');
+    return `<table><thead><tr>${ths}</tr></thead><tbody>${trs}</tbody></table>`;
+  });
+  h = h.replace(/^- (.+)$/gm, '<li>$1</li>');
+  h = h.replace(/(<li>[\s\S]*?<\/li>\n?)+/g, s => `<ul>${s}</ul>`);
+  h = h.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  h = h.split('\n\n').map(block => {
+    if (/^<(h[1-3]|ul|ol|pre|table)/.test(block.trim())) return block;
+    return `<p>${block}</p>`;
+  }).join('');
+  h = h.replace(/<p><\/p>/g, '');
+  return h;
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>
