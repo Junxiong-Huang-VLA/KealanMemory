@@ -15,6 +15,7 @@ web/templates/__pycache__/
 *.local.json
 install/claude_settings.local.json
 *.tmp
+*.log
 *.bak
 *.bak-*
 tests/snapshots/*.actual
