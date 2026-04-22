@@ -141,7 +141,16 @@ def main():
 
     print("\n写入记忆...")
     write_memory(project, completed, next_actions)
-    print("\n收工完成。")
+
+    # 自动同步到 GitHub
+    print("同步到 GitHub...")
+    from datetime import datetime
+    date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    ret = os.system(f'cd D:/KealanMemory && git add . && git commit -m "sync: {date_str}" && git push')
+    if ret == 0:
+        print("\n收工完成，记忆已推送到 GitHub。")
+    else:
+        print("\n收工完成（GitHub 同步失败，请手动 git push）。")
 
 
 if __name__ == "__main__":

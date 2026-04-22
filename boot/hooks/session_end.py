@@ -239,6 +239,10 @@ def main():
     # 写回记忆
     if summary:
         update_memory(project, summary, cwd)
+        # 自动推送到 GitHub
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+        os.system(f'cd D:/KealanMemory && git add . && git commit -m "sync: {date_str}" && git push')
 
     sys.exit(0)
 
